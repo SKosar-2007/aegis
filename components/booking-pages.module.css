@@ -143,6 +143,43 @@
   color: var(--green);
 }
 
+.pressureSection {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.pressureHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pressureHeading h3 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 14px;
+}
+
+.pressureHeading span {
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.pressureSection > p {
+  margin: 7px 0 12px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.pressureSection .patternToggle {
+  margin-top: 8px;
+}
+
 :global(.booking-extra-copy b) {
   font-size: 14px;
 }

@@ -8,6 +8,12 @@ import { SiteFooter, SiteHeader } from './landing-page'
 import { cn } from '@/lib/utils'
 import styles from './booking-pages.module.css'
 
+const pressurePatterns = [
+  { id: 'scarcity', title: 'Scarcity claim', detail: 'Only 2 spots left at this price.' },
+  { id: 'countdown', title: 'Countdown pressure', detail: 'This offer expires in 05:00.' },
+  { id: 'socialProof', title: 'Social proof claim', detail: '7 people are viewing this offer.' },
+] as const
+
 export function BookingIndexPage() {
   return (
     <div className="site">
@@ -45,6 +51,7 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
   const [patternEnabled, setPatternEnabled] = useState(booking.patternToggle.enabledByDefault)
   const [feesItemized, setFeesItemized] = useState(true)
   const [promoSelected, setPromoSelected] = useState(false)
+  const [pressureEnabled, setPressureEnabled] = useState({ scarcity: false, countdown: false, socialProof: false })
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [showPattern, setShowPattern] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -92,6 +99,7 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
     setPatternEnabled(booking.patternToggle.enabledByDefault)
     setFeesItemized(true)
     setPromoSelected(false)
+    setPressureEnabled({ scarcity: false, countdown: false, socialProof: false })
     setConfirmationReference('')
     setSubmitError('')
     setShowPattern(false)
@@ -145,6 +153,16 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                     <span className="booking-pattern-tag">{booking.urgency ? 'URGENCY' : booking.id === 'hotel' ? 'PRESELECTED' : 'FEES'}</span>
                   </div>
                 )}
+                {pressurePatterns.filter(({ id }) => pressureEnabled[id]).map((pattern) => (
+                  <div key={pattern.id} className="booking-urgency" role="status">
+                    <TriangleAlert size={15} />
+                    <span>
+                      <b>{pattern.detail}</b>
+                      <small>Simulated claim only · no real stock, viewers, or countdown</small>
+                    </span>
+                    <span className="booking-pattern-tag">{pattern.id === 'socialProof' ? 'SOCIAL PROOF' : pattern.id.toUpperCase()}</span>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -214,6 +232,31 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                     <span className={styles.switchState}>{patternEnabled ? 'On' : 'Off'}</span>
                   </label>
                 )}
+                <div className={styles.pressureSection}>
+                  <div className={styles.pressureHeading}>
+                    <h3>More pressure patterns</h3>
+                    <span>SIMULATION ONLY</span>
+                  </div>
+                  <p>Turn on individual examples. Nothing is connected to real stock, viewers, or timers.</p>
+                  {pressurePatterns.map((pattern) => (
+                    <label key={pattern.id} className={styles.patternToggle}>
+                      <input
+                        className={styles.switchInput}
+                        type="checkbox"
+                        role="switch"
+                        checked={pressureEnabled[pattern.id]}
+                        onChange={(event) => setPressureEnabled((current) => ({ ...current, [pattern.id]: event.target.checked }))}
+                        aria-describedby={`pressure-${pattern.id}-description`}
+                      />
+                      <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchKnob} /></span>
+                      <span className={styles.switchCopy}>
+                        <b>{pattern.title}</b>
+                        <small id={`pressure-${pattern.id}-description`}>{pattern.detail}</small>
+                      </span>
+                      <span className={styles.switchState}>{pressureEnabled[pattern.id] ? 'On' : 'Off'}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             )}
 
