@@ -54,7 +54,7 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
 
   function updatePatternToggle(enabled: boolean) {
     setPatternEnabled(enabled)
-    if (booking.id === 'hotel') setExtraSelected(enabled)
+    if (booking.id === 'hotel' && enabled) setExtraSelected(true)
   }
 
   async function saveDemoBooking(event: FormEvent<HTMLFormElement>) {
@@ -157,7 +157,7 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                   />
                   <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchKnob} /></span>
                   <span className={styles.switchCopy}>
-                    <b>Pattern simulation</b>
+                    <b>Test scenario</b>
                     <small id="pattern-toggle-description">{booking.patternToggle.label}</small>
                   </span>
                   <span className={styles.switchState}>{patternEnabled ? 'On' : 'Off'}</span>
