@@ -23,8 +23,8 @@ type BookingCase = {
 
 export const bookingCases: BookingCase[] = [
   {
-    id: 'hotel', number: '01', category: 'STAY / HOTEL', title: 'A weekend in the city', subtitle: 'Review a hotel checkout with a preselected protection add-on and tester-only bypass.', item: 'The Linden House', details: 'Queen room · 2 guests · Breakfast included', dates: 'Fri, May 21 – Sun, May 23, 2027', price: 428, fee: 38, feeLabel: 'Property & service fees', icon: Hotel,
-    pattern: 'Preselected add-on', patternDetail: 'Trip protection starts selected and locked. Its $24 cost is included in the total; the clearly labeled tester bypass unlocks the choice and lets you remove it.', initialExtraSelected: true, patternToggle: { label: 'Show trip protection preselected in this scenario', enabledByDefault: true }, extra: { label: 'Trip protection', description: 'Cancellation coverage for this stay', price: 24 },
+    id: 'hotel', number: '01', category: 'STAY / HOTEL', title: 'A two-night stay in Portland', subtitle: 'A realistic hotel checkout simulation with a preselected add-on, room-rate pressure, and a clear tester bypass.', item: 'The Linden House · Portland', details: 'King room · 2 guests · Breakfast included', dates: 'Fri, May 21 – Sun, May 23, 2027 · 2 nights', price: 428, fee: 38, feeLabel: 'Taxes & property fees', icon: Hotel,
+    pattern: 'Preselected cancellation cover', patternDetail: 'Optional cancellation cover is selected before checkout and included in the price. The tester bypass removes it by default and makes the choice editable.', initialExtraSelected: true, patternToggle: { label: 'Preselect optional cancellation cover in this scenario', enabledByDefault: true }, extra: { label: 'Cancellation protection', description: 'Optional cover for this stay · can be declined', price: 24 },
   },
   {
     id: 'flight', number: '02', category: 'AIR / FLIGHT', title: 'A nonstop to the coast', subtitle: 'Review an airfare checkout with optional seat selection.', item: 'Northstar Air · NS 204', details: 'Nonstop · Economy · 1 traveler', dates: 'Tue, Jun 15, 2027 · 9:20 AM – 12:05 PM', price: 286, fee: 42, feeLabel: 'Taxes & carrier fees', icon: Plane,
