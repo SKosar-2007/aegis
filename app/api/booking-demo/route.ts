@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   }
 
   const data = payload as Record<string, unknown>
-  if (typeof data.caseId !== 'string' || typeof data.extraSelected !== 'boolean' || typeof data.patternEnabled !== 'boolean') {
+  if (typeof data.caseId !== 'string' || typeof data.extraSelected !== 'boolean' || typeof data.patternEnabled !== 'boolean' || (data.promoSelected !== undefined && typeof data.promoSelected !== 'boolean')) {
     return NextResponse.json({ error: 'Invalid booking selection.' }, { status: 400, headers: { 'Cache-Control': 'no-store' } })
   }
 
@@ -36,7 +36,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unknown demo case.' }, { status: 400, headers: { 'Cache-Control': 'no-store' } })
   }
 
-  const totalCents = Math.round((booking.price + booking.fee + (data.extraSelected ? booking.extra.price : 0)) * 100)
+  const promoSelected = data.promoSelected === true
+  const totalCents = Math.round((booking.price + booking.fee + (data.extraSelected ? booking.extra.price : 0) - (promoSelected ? 10 : 0)) * 100)
 
   try {
     const db = getDb()
