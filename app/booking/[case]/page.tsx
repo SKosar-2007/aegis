@@ -18,5 +18,5 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function Page({ params }: PageProps) {
   const { case: caseId } = await params
   if (!bookingCases.some(({ id }) => id === caseId)) notFound()
-  return <BookingCasePage caseId={caseId} />
+  return <BookingCasePage caseId={caseId} key={caseId} />
 }

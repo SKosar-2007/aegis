@@ -1,0 +1,241 @@
+.stepper span {
+  min-width: 0;
+}
+
+.completedStep {
+  color: var(--green) !important;
+}
+
+.completedStep b {
+  background: var(--green) !important;
+  color: white !important;
+  border-color: var(--green) !important;
+}
+
+.patternToggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 68px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  cursor: pointer;
+}
+
+.switchInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.switchTrack {
+  display: inline-flex;
+  align-items: center;
+  width: 38px;
+  height: 22px;
+  padding: 2px;
+  flex: none;
+  border: 1px solid #c5cec6;
+  border-radius: 999px;
+  background: #e5e9e4;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.switchKnob {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 16%);
+  transition: transform 160ms ease;
+}
+
+.switchInput:checked + .switchTrack {
+  border-color: var(--green);
+  background: var(--green);
+}
+
+.switchInput:checked + .switchTrack .switchKnob {
+  transform: translateX(16px);
+}
+
+.switchInput:focus-visible + .switchTrack {
+  outline: 3px solid #6aa37b;
+  outline-offset: 3px;
+}
+
+.switchCopy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.switchCopy b {
+  color: var(--foreground);
+  font-size: 10px;
+}
+
+.switchCopy small {
+  color: var(--muted-foreground);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.switchState {
+  min-width: 27px;
+  color: var(--green);
+  font-size: 9px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.feeDisclosure {
+  margin: 8px 0 0;
+  color: var(--muted-foreground);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.privacyNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 17px 0 0;
+  color: var(--muted-foreground);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.privacyNote svg {
+  flex: none;
+  color: var(--green);
+  margin-top: 1px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px;
+  padding: 7px 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+
+.backButton:hover {
+  color: var(--green);
+}
+
+.errorMessage {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #ebd6d1;
+  background: #fcf6f3;
+  color: var(--red);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.confirmation {
+  padding: 28px;
+}
+
+.confirmationIcon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--green-light);
+  color: var(--green);
+}
+
+.confirmation h2 {
+  margin: 12px 0 8px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+
+.confirmation > p:not(.privacyNote) {
+  max-width: 420px;
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.referenceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  padding: 13px 0;
+  border-block: 1px solid var(--border);
+}
+
+.referenceRow span {
+  color: var(--muted-foreground);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.referenceRow b {
+  color: var(--green);
+  font-family: monospace;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+
+.spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgb(255 255 255 / 45%);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .stepper {
+    gap: 7px;
+  }
+
+  .stepper span {
+    gap: 5px;
+    font-size: 8px;
+  }
+
+  .stepper i {
+    min-width: 7px;
+  }
+
+  .patternToggle {
+    gap: 9px;
+    padding-inline: 10px;
+  }
+
+  .confirmation {
+    padding: 22px;
+  }
+}
