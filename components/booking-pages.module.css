@@ -130,9 +130,16 @@
   text-align: left;
 }
 
-.declineButton:hover {
+.declineButton:hover:not(:disabled) {
   border-color: var(--green);
   background: var(--green-light);
+}
+
+.declineButton:disabled {
+  border-color: var(--border);
+  background: #f2f4f1;
+  color: var(--muted-foreground);
+  cursor: not-allowed;
 }
 
 .promoLine {
@@ -141,6 +148,25 @@
 
 .promoLine b {
   color: var(--green);
+}
+
+.testerControls {
+  margin: 0 0 22px;
+  padding: 15px;
+  border: 1px solid var(--border);
+  background: var(--green-light);
+}
+
+.testerControls > p {
+  margin: 8px 0 0;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.testerControls .patternToggle {
+  margin-top: 12px;
+  background: #fff;
 }
 
 .pressureSection {
@@ -176,8 +202,29 @@
   line-height: 1.5;
 }
 
-.pressureSection .patternToggle {
-  margin-top: 8px;
+.pressureStatusList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.pressureStatus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 12px;
+}
+
+.pressureStatus b {
+  color: var(--green);
+  font-size: 10px;
+  text-transform: uppercase;
 }
 
 :global(.booking-extra-copy b) {
