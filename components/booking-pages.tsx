@@ -126,11 +126,14 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                     <div className="booking-date"><Clock3 size={13} /> {booking.dates}</div>
                   </div>
                 </div>
-                {booking.urgency && patternEnabled && (
+                {patternEnabled && (
                   <div className="booking-urgency">
                     <TriangleAlert size={15} />
-                    <span><b>{booking.urgency}</b><small>Example claim only · inventory is not connected</small></span>
-                    <span className="booking-pattern-tag">URGENCY</span>
+                    <span>
+                      <b>{booking.urgency ?? (booking.id === 'hotel' ? 'Trip protection is preselected' : 'Fees are itemized before you continue')}</b>
+                      <small>{booking.urgency ? 'Example claim only · inventory is not connected' : 'Demo pattern preview · your choices and total stay in your control'}</small>
+                    </span>
+                    <span className="booking-pattern-tag">{booking.urgency ? 'URGENCY' : booking.id === 'hotel' ? 'PRESELECTED' : 'FEES'}</span>
                   </div>
                 )}
               </div>
