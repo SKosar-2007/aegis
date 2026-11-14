@@ -43,13 +43,20 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
   const booking = bookingCases.find((item) => item.id === caseId) ?? bookingCases[0]
   const [extraSelected, setExtraSelected] = useState(booking.initialExtraSelected)
   const [patternEnabled, setPatternEnabled] = useState(booking.patternToggle.enabledByDefault)
+  const [feesItemized, setFeesItemized] = useState(true)
+  const [promoSelected, setPromoSelected] = useState(false)
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [showPattern, setShowPattern] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [confirmationReference, setConfirmationReference] = useState('')
   const Icon = booking.icon
-  const total = booking.price + booking.fee + (extraSelected ? booking.extra.price : 0)
+  const promoDiscount = 10
+  const total = booking.price + booking.fee + (extraSelected ? booking.extra.price : 0) - (promoSelected ? promoDiscount : 0)
+  const patternTitle = booking.id === 'event' && !feesItemized ? 'Grouped fee display' : booking.pattern
+  const patternDetail = booking.id === 'event' && !feesItemized
+    ? 'Fees are grouped with the admission price, while the full total remains visible before you continue.'
+    : booking.patternDetail
   const steps = ['Review trip', 'Guest details', 'Confirmation'] as const
 
   function updatePatternToggle(enabled: boolean) {
@@ -66,7 +73,7 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
       const response = await fetch('/api/booking-demo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caseId: booking.id, patternEnabled, extraSelected }),
+        body: JSON.stringify({ caseId: booking.id, patternEnabled, extraSelected, promoSelected }),
       })
       const result = await response.json() as { reference?: string }
 
@@ -83,6 +90,8 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
   function resetDemo() {
     setExtraSelected(booking.initialExtraSelected)
     setPatternEnabled(booking.patternToggle.enabledByDefault)
+    setFeesItemized(true)
+    setPromoSelected(false)
     setConfirmationReference('')
     setSubmitError('')
     setShowPattern(false)
@@ -148,25 +157,62 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                   <span className="booking-extra-copy"><b>{booking.extra.label}</b><small>{booking.extra.description}</small></span>
                   <strong>+${booking.extra.price.toFixed(2)}</strong>
                 </label>
-                <p className="booking-control-note">{extraSelected ? 'Selected — uncheck to remove it from the total.' : 'Not selected — continue without this extra.'}</p>
+                <p className={styles.optionNote}>{extraSelected ? 'Added to your total. Remove it anytime.' : 'Not added. You can continue without it.'}</p>
+                <button type="button" className={styles.declineButton} onClick={() => setExtraSelected(!extraSelected)}>
+                  {extraSelected ? `No thanks — remove ${booking.extra.label}` : `Add ${booking.extra.label}`}
+                </button>
                 <label className={styles.patternToggle}>
                   <input
                     className={styles.switchInput}
                     type="checkbox"
                     role="switch"
-                    checked={patternEnabled}
-                    onChange={(event) => updatePatternToggle(event.target.checked)}
-                    aria-describedby="pattern-toggle-description"
+                    checked={feesItemized}
+                    onChange={(event) => {
+                      setFeesItemized(event.target.checked)
+                      if (booking.id === 'event') setPatternEnabled(event.target.checked)
+                    }}
+                    aria-describedby="fee-toggle-description"
                   />
                   <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchKnob} /></span>
                   <span className={styles.switchCopy}>
-                    <b>Test scenario</b>
-                    <small id="pattern-toggle-description">{booking.patternToggle.label}</small>
+                    <b>Show fee breakdown</b>
+                    <small id="fee-toggle-description">{feesItemized ? 'Fees are shown as a separate line.' : 'Fees are grouped into the price; the total still includes them.'}</small>
                   </span>
-                  <span className={styles.switchState}>{patternEnabled ? 'On' : 'Off'}</span>
+                  <span className={styles.switchState}>{feesItemized ? 'On' : 'Off'}</span>
                 </label>
-                {booking.id === 'event' && !patternEnabled && (
-                  <p className={styles.feeDisclosure}>Fees are still included in the total; this view groups them with admission.</p>
+                <label className={styles.patternToggle}>
+                  <input
+                    className={styles.switchInput}
+                    type="checkbox"
+                    role="switch"
+                    checked={promoSelected}
+                    onChange={(event) => setPromoSelected(event.target.checked)}
+                    aria-describedby="promo-toggle-description"
+                  />
+                  <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchKnob} /></span>
+                  <span className={styles.switchCopy}>
+                    <b>Apply demo promo · SAVE10</b>
+                    <small id="promo-toggle-description">Optional $10 discount. It will appear in your price summary.</small>
+                  </span>
+                  <span className={styles.switchState}>{promoSelected ? 'On' : 'Off'}</span>
+                </label>
+                {booking.id !== 'event' && (
+                  <label className={styles.patternToggle}>
+                    <input
+                      className={styles.switchInput}
+                      type="checkbox"
+                      role="switch"
+                      checked={patternEnabled}
+                      onChange={(event) => updatePatternToggle(event.target.checked)}
+                      aria-describedby="pattern-toggle-description"
+                    />
+                    <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchKnob} /></span>
+                    <span className={styles.switchCopy}>
+                      <b>{booking.id === 'hotel' ? 'Auto-add extra (test only)' : 'Show urgency message'}</b>
+                      <small id="pattern-toggle-description">{booking.patternToggle.label}</small>
+                    </span>
+                    <span className={styles.switchState}>{patternEnabled ? 'On' : 'Off'}</span>
+                  </label>
                 )}
               </div>
             )}
@@ -179,7 +225,7 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                   <label>Last name<input type="text" name="lastName" placeholder="Morgan" autoComplete="family-name" maxLength={80} required /></label>
                   <label className="booking-email">Email address<input type="email" name="email" placeholder="alex@example.com" autoComplete="email" maxLength={254} required /></label>
                 </div>
-                <p className={styles.privacyNote}><ShieldCheck size={14} /> These fictional details stay in this form. Only your test case, toggle choices, and calculated total are saved.</p>
+                <p className={styles.privacyNote}><ShieldCheck size={14} /> Guest details stay in this form. The demo records your test case, selected extra, and final total.</p>
                 {submitError && <p className={styles.errorMessage} role="alert">{submitError}</p>}
                 <button type="button" className={styles.backButton} onClick={() => setStep(1)}><ArrowLeft size={14} /> Back to review</button>
               </form>
@@ -200,18 +246,19 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
           <aside className="booking-sidebar">
             <div className="booking-card booking-summary">
               <div className="booking-card-eyebrow">PRICE SUMMARY <span>USD</span></div>
-              {booking.id === 'event' && !patternEnabled ? (
-                <>
-                  <div className="booking-line"><span>Admission + fees</span><b>${(booking.price + booking.fee).toFixed(2)}</b></div>
-                  <p className={styles.feeDisclosure}>Includes {booking.feeLabel.toLowerCase()}: ${booking.fee.toFixed(2)}</p>
-                </>
-              ) : (
+              {feesItemized ? (
                 <>
                   <div className="booking-line"><span>{booking.item}</span><b>${booking.price.toFixed(2)}</b></div>
                   <div className="booking-line"><span>{booking.feeLabel} <CircleHelp size={12} /></span><b>${booking.fee.toFixed(2)}</b></div>
                 </>
+              ) : (
+                <>
+                  <div className="booking-line"><span>{booking.item} · fees included</span><b>${(booking.price + booking.fee).toFixed(2)}</b></div>
+                  <p className={styles.feeDisclosure}>Mandatory fees are included in this amount and in the total.</p>
+                </>
               )}
               {extraSelected && <div className="booking-line"><span>{booking.extra.label}</span><b>${booking.extra.price.toFixed(2)}</b></div>}
+              {promoSelected && <div className={`booking-line ${styles.promoLine}`}><span>Demo promo · SAVE10</span><b>−${promoDiscount.toFixed(2)}</b></div>}
               <div className="booking-total"><span>Total for this booking</span><b>${total.toFixed(2)}</b></div>
               {step === 1 && (
                 <button className="booking-continue" type="button" onClick={() => setStep(2)}>
@@ -233,10 +280,10 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
             <div className="booking-insight">
               <button onClick={() => setShowPattern(!showPattern)} aria-expanded={showPattern}>
                 <span className="booking-insight-icon"><TriangleAlert size={15} /></span>
-                <span><small>AEGISDOM PATTERN NOTE</small><b>{booking.pattern}</b></span>
+                <span><small>AEGISDOM PATTERN NOTE</small><b>{patternTitle}</b></span>
                 <ArrowRight size={14} className={showPattern ? 'booking-insight-arrow expanded' : 'booking-insight-arrow'} />
               </button>
-              {showPattern && <p>{booking.patternDetail}</p>}
+              {showPattern && <p>{patternDetail}</p>}
             </div>
             <div className="booking-fineprint">Fictional test only. Names and email are never sent to the backend.</div>
           </aside>

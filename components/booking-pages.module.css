@@ -83,19 +83,19 @@
 
 .switchCopy b {
   color: var(--foreground);
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .switchCopy small {
   color: var(--muted-foreground);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.45;
 }
 
 .switchState {
   min-width: 27px;
   color: var(--green);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   text-align: right;
 }
@@ -103,8 +103,54 @@
 .feeDisclosure {
   margin: 8px 0 0;
   color: var(--muted-foreground);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.5;
+}
+
+.optionNote {
+  margin: 11px 0 0;
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.declineButton {
+  display: flex;
+  min-height: 44px;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.declineButton:hover {
+  border-color: var(--green);
+  background: var(--green-light);
+}
+
+.promoLine {
+  color: var(--green);
+}
+
+.promoLine b {
+  color: var(--green);
+}
+
+:global(.booking-extra-copy b) {
+  font-size: 14px;
+}
+
+:global(.booking-extra-copy small) {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .privacyNote {
