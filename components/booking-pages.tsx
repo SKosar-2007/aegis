@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, type FormEvent } from 'react'
 import { ArrowLeft, ArrowRight, Check, CircleHelp, Clock3, ShieldCheck, TriangleAlert } from 'lucide-react'
 import { bookingCases } from './booking-data'
@@ -9,9 +10,9 @@ import { cn } from '@/lib/utils'
 import styles from './booking-pages.module.css'
 
 const pressurePatterns = [
-  { id: 'scarcity', title: 'Scarcity claim', detail: 'Only 2 spots left at this price.' },
-  { id: 'countdown', title: 'Countdown pressure', detail: 'This offer expires in 05:00.' },
-  { id: 'socialProof', title: 'Social proof claim', detail: '7 people are viewing this offer.' },
+  { id: 'scarcity', title: 'Room scarcity', detail: 'Only 2 rooms left at this rate.' },
+  { id: 'countdown', title: 'Rate countdown', detail: 'This rate is held for 04:59.' },
+  { id: 'socialProof', title: 'Recent booking activity', detail: '12 travelers booked this property today.' },
 ] as const
 
 export function BookingIndexPage() {
@@ -62,6 +63,12 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
   const extraLocked = booking.initialExtraSelected && !testerBypassEnabled
   const patternEnabled = !testerBypassEnabled && (booking.id !== 'event' || feesItemized)
   const total = booking.price + booking.fee + (effectiveExtraSelected ? booking.extra.price : 0) - (promoSelected ? promoDiscount : 0)
+  const bypassSavings = booking.initialExtraSelected && testerBypassEnabled && !effectiveExtraSelected ? booking.extra.price : 0
+  const originalTotal = booking.price + booking.fee + (booking.initialExtraSelected ? booking.extra.price : 0) - (promoSelected ? promoDiscount : 0)
+  const handleTesterBypass = (enabled: boolean) => {
+    setTesterBypassEnabled(enabled)
+    setExtraSelected(enabled ? false : booking.initialExtraSelected)
+  }
   const patternTitle = testerBypassEnabled
     ? 'Tester bypass active'
     : booking.id === 'event' && !feesItemized ? 'Grouped fee display' : booking.pattern
@@ -135,6 +142,11 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
             {step !== 3 && (
               <div className="booking-card booking-reservation">
                 <div className="booking-card-eyebrow">YOUR RESERVATION <span>DETAILS</span></div>
+                {booking.id === 'hotel' && (
+                  <div className={styles.hotelPhoto}>
+                    <Image src="/linden-house-room.png" alt="King room at The Linden House, softly lit with neutral linens and warm wood details" fill sizes="(max-width: 720px) 100vw, 60vw" priority />
+                  </div>
+                )}
                 <div className="booking-reservation-content">
                   <div className="booking-item-icon"><Icon size={21} /></div>
                   <div className="booking-item-copy">
@@ -147,18 +159,18 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                   <div className="booking-urgency">
                     <TriangleAlert size={15} />
                     <span>
-                      <b>{booking.urgency ?? (booking.id === 'hotel' ? 'Trip protection is preselected' : 'Fees are itemized before you continue')}</b>
+                      <b>{booking.urgency ?? (booking.id === 'hotel' ? 'Cancellation protection is preselected' : 'Fees are itemized before you continue')}</b>
                       <small>{booking.urgency ? 'Example claim only · inventory is not connected' : 'Sticky demo default · use tester bypass to remove'}</small>
                     </span>
                     <span className="booking-pattern-tag">{booking.urgency ? 'URGENCY' : booking.id === 'hotel' ? 'PRESELECTED' : 'FEES'}</span>
                   </div>
                 )}
-                {!testerBypassEnabled && pressurePatterns.map((pattern) => (
+                {booking.id === 'hotel' && !testerBypassEnabled && pressurePatterns.map((pattern) => (
                   <div key={pattern.id} className="booking-urgency" role="status">
                     <TriangleAlert size={15} />
                     <span>
                       <b>{pattern.detail}</b>
-                      <small>Simulated claim only · no real stock, viewers, or countdown</small>
+                        <small>Example checkout message · simulated, not live inventory or activity</small>
                     </span>
                     <span className="booking-pattern-tag">{pattern.id === 'socialProof' ? 'SOCIAL PROOF' : pattern.id.toUpperCase()}</span>
                   </div>
@@ -173,14 +185,14 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                     <h3>Tester controls</h3>
                     <span>SIMULATION ONLY</span>
                   </div>
-                  <p>{booking.initialExtraSelected ? 'The preselected add-on and pressure claims stay locked on unless you use this bypass.' : 'Pressure claims stay locked on by default; add-ons remain optional.'}</p>
+                  <p>{booking.initialExtraSelected ? 'Turn on the bypass to remove the optional add-on, clear the pressure messages, and see the adjusted total immediately.' : 'Turn on the bypass to clear simulated pressure messages. Optional extras stay under your control.'}</p>
                   <label className={styles.patternToggle}>
                     <input
                       className={styles.switchInput}
                       type="checkbox"
                       role="switch"
                       checked={testerBypassEnabled}
-                      onChange={(event) => setTesterBypassEnabled(event.target.checked)}
+                      onChange={(event) => handleTesterBypass(event.target.checked)}
                       aria-describedby="tester-bypass-description"
                     />
                     <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchKnob} /></span>
@@ -188,8 +200,8 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                       <b>Enable tester bypass</b>
                       <small id="tester-bypass-description">
                         {testerBypassEnabled
-                          ? booking.initialExtraSelected ? 'Pressure claims are suppressed; the preselected add-on can be removed.' : 'Pressure claims are suppressed; add-ons remain optional.'
-                          : booking.initialExtraSelected ? 'Off by default. Unlocks the preselected add-on and suppresses pressure claims.' : 'Off by default. Suppresses pressure claims; add-ons remain optional.'}
+                          ? booking.initialExtraSelected ? 'Pressure messages are hidden and the optional add-on is removed from your total.' : 'Pressure messages are hidden; optional add-ons remain under your control.'
+                          : booking.initialExtraSelected ? 'Off by default. Applies a neutral view and removes the preselected add-on.' : 'Off by default. Hides simulated pressure messages.'}
                       </small>
                     </span>
                     <span className={styles.switchState}>{testerBypassEnabled ? 'On' : 'Off'}</span>
@@ -247,15 +259,15 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                 </label>
                 <div className={styles.pressureSection}>
                   <div className={styles.pressureHeading}>
-                    <h3>More pressure patterns</h3>
-                    <span>{testerBypassEnabled ? 'BYPASSED' : 'LOCKED ON'}</span>
+                    <h3>Checkout pressure messages</h3>
+                    <span>{testerBypassEnabled ? 'CLEARED' : 'SIMULATED'}</span>
                   </div>
-                  <p>{testerBypassEnabled ? 'The tester bypass suppresses all pressure claims.' : 'These examples stay on by default and cannot be removed individually.'}</p>
+                  <p>{testerBypassEnabled ? 'These simulated messages are hidden in the neutral test view.' : 'Examples commonly used to create urgency during hotel booking. No live inventory or activity is connected.'}</p>
                   <div className={styles.pressureStatusList}>
                     {pressurePatterns.map((pattern) => (
                       <div key={pattern.id} className={styles.pressureStatus}>
                         <span>{pattern.title}</span>
-                        <b>{testerBypassEnabled ? 'Bypassed' : 'Locked on'}</b>
+                        <b>{testerBypassEnabled ? 'Cleared' : 'Shown'}</b>
                       </div>
                     ))}
                   </div>
@@ -294,7 +306,7 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
               <div className="booking-card-eyebrow">PRICE SUMMARY <span>USD</span></div>
               {feesItemized ? (
                 <>
-                  <div className="booking-line"><span>{booking.item}</span><b>${booking.price.toFixed(2)}</b></div>
+                  <div className="booking-line"><span>{booking.id === 'hotel' ? 'Room rate · 2 nights' : booking.item}</span><b>${booking.price.toFixed(2)}</b></div>
                   <div className="booking-line"><span>{booking.feeLabel} <CircleHelp size={12} /></span><b>${booking.fee.toFixed(2)}</b></div>
                 </>
               ) : (
@@ -305,6 +317,13 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
               )}
               {effectiveExtraSelected && <div className="booking-line"><span>{booking.extra.label}</span><b>${booking.extra.price.toFixed(2)}</b></div>}
               {promoSelected && <div className={`booking-line ${styles.promoLine}`}><span>Demo promo · SAVE10</span><b>−${promoDiscount.toFixed(2)}</b></div>}
+              {bypassSavings > 0 && (
+                <div className={styles.bypassSavings} role="status" aria-live="polite">
+                  <div><b>Optional add-on removed</b><span>Tester bypass adjustment</span></div>
+                  <strong>−${bypassSavings.toFixed(2)}</strong>
+                  <small>Was ${originalTotal.toFixed(2)} · now ${total.toFixed(2)}</small>
+                </div>
+              )}
               <div className="booking-total"><span>Total for this booking</span><b>${total.toFixed(2)}</b></div>
               {step === 1 && (
                 <button className="booking-continue" type="button" onClick={() => setStep(2)}>
