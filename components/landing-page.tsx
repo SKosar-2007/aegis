@@ -9,7 +9,7 @@ export function SiteMark({ compact = false }: { compact?: boolean }) {
 }
 
 export function SiteHeader() {
-  return <header className="site-header"><SiteMark /><nav className="main-nav" aria-label="Main navigation"><a href="/#how-it-works">How it works</a><Link href="/sandbox">Sandbox</Link><Link href="/dashboard">Cockpit</Link></nav><Link className="button button-dark button-small" href="/dashboard">Open cockpit <ArrowUpRight size={15} /></Link></header>
+  return <header className="site-header"><SiteMark /><nav className="main-nav" aria-label="Main navigation"><a href="/#how-it-works">How it works</a><Link href="/sandbox">Sandbox</Link><Link href="/booking">Booking cases</Link><Link href="/dashboard">Cockpit</Link></nav><Link className="button button-dark button-small" href="/dashboard">Open cockpit <ArrowUpRight size={15} /></Link></header>
 }
 
 export function SiteFooter() {
