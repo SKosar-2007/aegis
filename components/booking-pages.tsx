@@ -48,10 +48,9 @@ export function BookingIndexPage() {
 export function BookingCasePage({ caseId }: { caseId: string }) {
   const booking = bookingCases.find((item) => item.id === caseId) ?? bookingCases[0]
   const [extraSelected, setExtraSelected] = useState(booking.initialExtraSelected)
-  const [patternEnabled, setPatternEnabled] = useState(booking.patternToggle.enabledByDefault)
+  const [testerBypassEnabled, setTesterBypassEnabled] = useState(false)
   const [feesItemized, setFeesItemized] = useState(true)
   const [promoSelected, setPromoSelected] = useState(false)
-  const [pressureEnabled, setPressureEnabled] = useState({ scarcity: false, countdown: false, socialProof: false })
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [showPattern, setShowPattern] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -59,17 +58,19 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
   const [confirmationReference, setConfirmationReference] = useState('')
   const Icon = booking.icon
   const promoDiscount = 10
-  const total = booking.price + booking.fee + (extraSelected ? booking.extra.price : 0) - (promoSelected ? promoDiscount : 0)
-  const patternTitle = booking.id === 'event' && !feesItemized ? 'Grouped fee display' : booking.pattern
-  const patternDetail = booking.id === 'event' && !feesItemized
-    ? 'Fees are grouped with the admission price, while the full total remains visible before you continue.'
-    : booking.patternDetail
+  const effectiveExtraSelected = testerBypassEnabled ? extraSelected : booking.initialExtraSelected
+  const extraLocked = booking.initialExtraSelected && !testerBypassEnabled
+  const patternEnabled = !testerBypassEnabled && (booking.id !== 'event' || feesItemized)
+  const total = booking.price + booking.fee + (effectiveExtraSelected ? booking.extra.price : 0) - (promoSelected ? promoDiscount : 0)
+  const patternTitle = testerBypassEnabled
+    ? 'Tester bypass active'
+    : booking.id === 'event' && !feesItemized ? 'Grouped fee display' : booking.pattern
+  const patternDetail = testerBypassEnabled
+    ? 'The tester bypass suppresses the sticky pressure claims and lets you remove the preselected add-on.'
+    : booking.id === 'event' && !feesItemized
+      ? 'Fees are grouped with the admission price, while the full total remains visible before you continue.'
+      : booking.patternDetail
   const steps = ['Review trip', 'Guest details', 'Confirmation'] as const
-
-  function updatePatternToggle(enabled: boolean) {
-    setPatternEnabled(enabled)
-    if (booking.id === 'hotel' && enabled) setExtraSelected(true)
-  }
 
   async function saveDemoBooking(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -80,7 +81,7 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
       const response = await fetch('/api/booking-demo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caseId: booking.id, patternEnabled, extraSelected, promoSelected }),
+        body: JSON.stringify({ caseId: booking.id, patternEnabled, extraSelected: effectiveExtraSelected, promoSelected }),
       })
       const result = await response.json() as { reference?: string }
 
@@ -96,10 +97,9 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
 
   function resetDemo() {
     setExtraSelected(booking.initialExtraSelected)
-    setPatternEnabled(booking.patternToggle.enabledByDefault)
+    setTesterBypassEnabled(false)
     setFeesItemized(true)
     setPromoSelected(false)
-    setPressureEnabled({ scarcity: false, countdown: false, socialProof: false })
     setConfirmationReference('')
     setSubmitError('')
     setShowPattern(false)
@@ -148,12 +148,12 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                     <TriangleAlert size={15} />
                     <span>
                       <b>{booking.urgency ?? (booking.id === 'hotel' ? 'Trip protection is preselected' : 'Fees are itemized before you continue')}</b>
-                      <small>{booking.urgency ? 'Example claim only · inventory is not connected' : 'Demo pattern preview · your choices and total stay in your control'}</small>
+                      <small>{booking.urgency ? 'Example claim only · inventory is not connected' : 'Sticky demo default · use tester bypass to remove'}</small>
                     </span>
                     <span className="booking-pattern-tag">{booking.urgency ? 'URGENCY' : booking.id === 'hotel' ? 'PRESELECTED' : 'FEES'}</span>
                   </div>
                 )}
-                {pressurePatterns.filter(({ id }) => pressureEnabled[id]).map((pattern) => (
+                {!testerBypassEnabled && pressurePatterns.map((pattern) => (
                   <div key={pattern.id} className="booking-urgency" role="status">
                     <TriangleAlert size={15} />
                     <span>
@@ -168,16 +168,50 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
 
             {step === 1 && (
               <div className="booking-card booking-option-card">
-                <div className="booking-card-eyebrow">OPTIONAL EXTRAS <span>YOU CAN CHANGE THIS</span></div>
+                <div className={styles.testerControls}>
+                  <div className={styles.pressureHeading}>
+                    <h3>Tester controls</h3>
+                    <span>SIMULATION ONLY</span>
+                  </div>
+                  <p>{booking.initialExtraSelected ? 'The preselected add-on and pressure claims stay locked on unless you use this bypass.' : 'Pressure claims stay locked on by default; add-ons remain optional.'}</p>
+                  <label className={styles.patternToggle}>
+                    <input
+                      className={styles.switchInput}
+                      type="checkbox"
+                      role="switch"
+                      checked={testerBypassEnabled}
+                      onChange={(event) => setTesterBypassEnabled(event.target.checked)}
+                      aria-describedby="tester-bypass-description"
+                    />
+                    <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchKnob} /></span>
+                    <span className={styles.switchCopy}>
+                      <b>Enable tester bypass</b>
+                      <small id="tester-bypass-description">
+                        {testerBypassEnabled
+                          ? booking.initialExtraSelected ? 'Pressure claims are suppressed; the preselected add-on can be removed.' : 'Pressure claims are suppressed; add-ons remain optional.'
+                          : booking.initialExtraSelected ? 'Off by default. Unlocks the preselected add-on and suppresses pressure claims.' : 'Off by default. Suppresses pressure claims; add-ons remain optional.'}
+                      </small>
+                    </span>
+                    <span className={styles.switchState}>{testerBypassEnabled ? 'On' : 'Off'}</span>
+                  </label>
+                </div>
+                <div className="booking-card-eyebrow">
+                  {extraLocked ? 'PRESELECTED ADD-ON' : 'OPTIONAL EXTRAS'}
+                  <span>{extraLocked ? 'LOCKED BY DEFAULT' : 'YOU CAN CHANGE THIS'}</span>
+                </div>
                 <label className="booking-extra">
-                  <input type="checkbox" checked={extraSelected} onChange={(event) => setExtraSelected(event.target.checked)} />
+                  <input type="checkbox" checked={effectiveExtraSelected} disabled={extraLocked} onChange={(event) => setExtraSelected(event.target.checked)} aria-describedby="extra-selection-note" />
                   <span className="booking-checkbox" aria-hidden="true">{extraSelected && <Check size={12} />}</span>
                   <span className="booking-extra-copy"><b>{booking.extra.label}</b><small>{booking.extra.description}</small></span>
                   <strong>+${booking.extra.price.toFixed(2)}</strong>
                 </label>
-                <p className={styles.optionNote}>{extraSelected ? 'Added to your total. Remove it anytime.' : 'Not added. You can continue without it.'}</p>
-                <button type="button" className={styles.declineButton} onClick={() => setExtraSelected(!extraSelected)}>
-                  {extraSelected ? `No thanks — remove ${booking.extra.label}` : `Add ${booking.extra.label}`}
+                <p id="extra-selection-note" className={styles.optionNote}>
+                  {extraLocked
+                    ? 'Preselected and locked in this scenario. Enable tester bypass to remove it.'
+                    : effectiveExtraSelected ? 'Added to your total. You can remove it.' : 'Not added. You can continue without it.'}
+                </p>
+                <button type="button" className={styles.declineButton} disabled={extraLocked} onClick={() => setExtraSelected(!effectiveExtraSelected)}>
+                  {extraLocked ? 'Removal locked · tester bypass required' : effectiveExtraSelected ? `No thanks — remove ${booking.extra.label}` : `Add ${booking.extra.label}`}
                 </button>
                 <label className={styles.patternToggle}>
                   <input
@@ -185,10 +219,7 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                     type="checkbox"
                     role="switch"
                     checked={feesItemized}
-                    onChange={(event) => {
-                      setFeesItemized(event.target.checked)
-                      if (booking.id === 'event') setPatternEnabled(event.target.checked)
-                    }}
+                    onChange={(event) => setFeesItemized(event.target.checked)}
                     aria-describedby="fee-toggle-description"
                   />
                   <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchKnob} /></span>
@@ -214,48 +245,20 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                   </span>
                   <span className={styles.switchState}>{promoSelected ? 'On' : 'Off'}</span>
                 </label>
-                {booking.id !== 'event' && (
-                  <label className={styles.patternToggle}>
-                    <input
-                      className={styles.switchInput}
-                      type="checkbox"
-                      role="switch"
-                      checked={patternEnabled}
-                      onChange={(event) => updatePatternToggle(event.target.checked)}
-                      aria-describedby="pattern-toggle-description"
-                    />
-                    <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchKnob} /></span>
-                    <span className={styles.switchCopy}>
-                      <b>{booking.id === 'hotel' ? 'Auto-add extra (test only)' : 'Show urgency message'}</b>
-                      <small id="pattern-toggle-description">{booking.patternToggle.label}</small>
-                    </span>
-                    <span className={styles.switchState}>{patternEnabled ? 'On' : 'Off'}</span>
-                  </label>
-                )}
                 <div className={styles.pressureSection}>
                   <div className={styles.pressureHeading}>
                     <h3>More pressure patterns</h3>
-                    <span>SIMULATION ONLY</span>
+                    <span>{testerBypassEnabled ? 'BYPASSED' : 'LOCKED ON'}</span>
                   </div>
-                  <p>Turn on individual examples. Nothing is connected to real stock, viewers, or timers.</p>
-                  {pressurePatterns.map((pattern) => (
-                    <label key={pattern.id} className={styles.patternToggle}>
-                      <input
-                        className={styles.switchInput}
-                        type="checkbox"
-                        role="switch"
-                        checked={pressureEnabled[pattern.id]}
-                        onChange={(event) => setPressureEnabled((current) => ({ ...current, [pattern.id]: event.target.checked }))}
-                        aria-describedby={`pressure-${pattern.id}-description`}
-                      />
-                      <span className={styles.switchTrack} aria-hidden="true"><span className={styles.switchKnob} /></span>
-                      <span className={styles.switchCopy}>
-                        <b>{pattern.title}</b>
-                        <small id={`pressure-${pattern.id}-description`}>{pattern.detail}</small>
-                      </span>
-                      <span className={styles.switchState}>{pressureEnabled[pattern.id] ? 'On' : 'Off'}</span>
-                    </label>
-                  ))}
+                  <p>{testerBypassEnabled ? 'The tester bypass suppresses all pressure claims.' : 'These examples stay on by default and cannot be removed individually.'}</p>
+                  <div className={styles.pressureStatusList}>
+                    {pressurePatterns.map((pattern) => (
+                      <div key={pattern.id} className={styles.pressureStatus}>
+                        <span>{pattern.title}</span>
+                        <b>{testerBypassEnabled ? 'Bypassed' : 'Locked on'}</b>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -300,7 +303,7 @@ export function BookingCasePage({ caseId }: { caseId: string }) {
                   <p className={styles.feeDisclosure}>Mandatory fees are included in this amount and in the total.</p>
                 </>
               )}
-              {extraSelected && <div className="booking-line"><span>{booking.extra.label}</span><b>${booking.extra.price.toFixed(2)}</b></div>}
+              {effectiveExtraSelected && <div className="booking-line"><span>{booking.extra.label}</span><b>${booking.extra.price.toFixed(2)}</b></div>}
               {promoSelected && <div className={`booking-line ${styles.promoLine}`}><span>Demo promo · SAVE10</span><b>−${promoDiscount.toFixed(2)}</b></div>}
               <div className="booking-total"><span>Total for this booking</span><b>${total.toFixed(2)}</b></div>
               {step === 1 && (
